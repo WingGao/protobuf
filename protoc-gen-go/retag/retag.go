@@ -100,6 +100,10 @@ func (r *retag) getStructTags(filename string) {
 
 			k, v := getFieldTag(string(line), msgNameStack.GetPOP())
 
+			if k == "" || v == "" {
+				continue
+			}
+
 			r.tags[k] = v
 
 			if len(strings.Split(k, ".")[1]) > r.fieldMaxLen {
@@ -139,8 +143,12 @@ func getFieldTag(line string, msgName string) (field string, tag string) {
 	}
 
 	tag = strings.TrimSpace(tag)
-	tag = strings.Trim(tag, "`")
-	tag = trimInside(tag)
+	if strings.HasPrefix(tag, "`") && strings.HasSuffix(tag, "`") {
+		tag = strings.Trim(tag, "`")
+		tag = trimInside(tag)
+	} else {
+		return "", ""
+	}
 
 	return
 }
@@ -233,6 +241,7 @@ func (r *retag) retag() {
 
 	r.gen.Buffer.Reset()
 	data := buf.Bytes()
+	//fmt.Println("-----", string(data))
 	r.gen.Buffer.Write(data)
 }
 
